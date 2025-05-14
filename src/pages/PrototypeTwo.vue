@@ -81,7 +81,7 @@ interface Dice {
   number: number;
   justPlace: boolean;
 }
-const colorMap = {
+const colorMap :{[key:number]:string}= {
   1:'bg-red-600',
   2:'bg-green-600',
   3:'bg-black-500',
