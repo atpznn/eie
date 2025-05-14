@@ -3,14 +3,24 @@
   <div>max turn :{{ game.currentTurn }}</div>
 
   <div class="flex flex-col gap-4 relative">
-    <div  class="absolute right-[-120px] top-[175px] h-[150px]">
-    <div v-for="(value,index) in game.players.find(x=>x.id == game.playerTurn)?.dices">
-        <div @click="()=>{
-            valueIndex= index
-        }" :class="{'ml-[-12px]': valueIndex == index}" class="cursor-pointer rounded-md bg-amber-900 border-4 border-b-blue-200 w-[50px] h-[50px] flex items-center justify-center font-bold">
-            {{ value }}
+    <div class="absolute right-[-120px] top-[175px] h-[150px]">
+      <div
+        v-for="(value, index) in game.players.find(
+          (x) => x.id == game.playerTurn
+        )?.dices"
+      >
+        <div
+          @click="
+            () => {
+              valueIndex = index;
+            }
+          "
+          :class="[{'ml-[-12px]': valueIndex == index, },`${colorMap[value]}`]"
+          class="cursor-pointer rounded-md $bg-amber-900 border-4 border-b-blue-200 w-[50px] h-[50px] flex items-center justify-center font-bold"
+        >
+          {{ value }}
         </div>
-    </div>
+      </div>
     </div>
 
     <div v-for="(board, index) in [player1, player2]">
@@ -23,21 +33,21 @@
         >
           <div class="" v-for="block in board.data">
             <div
-            class="flex items-center justify-center"
-              :class="{
+              class="flex items-center justify-center"
+              :class="[{
                 'border w-[50px] h-[50px]': true,
                 'cursor-no-drop':
                   game.playerTurn != board.id || block[1].number > 0,
-                'border-amber-200':  game.playerTurn == board.id ,
-                'border-gray-600':  game.playerTurn != board.id ,
-                
-                  'rotate-270': true,
+                'border-amber-200': game.playerTurn == board.id,
+                'border-gray-600': game.playerTurn != board.id,
+                'cursor-pointer':block[1].number == 0,
+                'rotate-270': true,
                 'scale-y-[-1]': index == 0,
-              }"
+              },`${colorMap[block[1].number]}`]"
               :disabled="game.playerTurn != board.id || block[1].number > 0"
               @click="
               (e:Event) => {
-                if( game.playerTurn != board.id || checkGameIsEnd())return
+                if( game.playerTurn != board.id || checkGameIsEnd() ||block[1].number > 0)return
                 block[1].justPlace = true;
 
                 block[1].number = game.players.find(x=>x.id == game.playerTurn)!.dices[valueIndex]
@@ -46,10 +56,9 @@
                 process();
               }
             "
-              type="text"
             >
-        {{ block[1].number!=0?block[1].number:'' }}
-        </div>
+              {{ block[1].number != 0 ? block[1].number : "" }}
+            </div>
           </div>
         </div>
       </div>
@@ -58,6 +67,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+
 type GameState = {
   currentTurn: number;
   maxTurn: number;
@@ -71,34 +81,42 @@ interface Dice {
   number: number;
   justPlace: boolean;
 }
+const colorMap = {
+  1:'bg-red-600',
+  2:'bg-green-600',
+  3:'bg-black-500',
+  4:'bg-orange-600',
+  5:'bg-pink-600',
+  6:'bg-blue-600',
+}
 const player1 = ref<Player>({
   id: "1",
   score: 0,
   data: new Map(),
-  dices:[0,0,0]
+  dices: [0, 0, 0],
 });
 const player2 = ref<Player>({
   id: "2",
   data: new Map(),
   score: 0,
-  dices:[0,0,0]
+  dices: [0, 0, 0],
 });
 const game = ref<GameState>({
   currentTurn: 0,
-  maxTurn: 4,
+  maxTurn: 10,
   playerTurn: "1",
   moveInCurrentTurn: 0, // 👈 เพิ่มตรงนี้
   players: [player1.value, player2.value],
   winner: null,
 });
-const valueIndex = ref(0)
+const valueIndex = ref(0);
 const keymap = [
   [1, 4, 7],
   [2, 5, 8],
   [3, 6, 9],
 ];
-function getRandom(){
-    return parseInt(`${Math.random()*(6-1)+1}`)
+function getRandom() {
+  return parseInt(`${Math.random() * (7 - 1) + 1}`);
 }
 onMounted(() => {
   keymap.forEach((x) =>
@@ -113,15 +131,15 @@ onMounted(() => {
       });
     })
   );
-  player1.value.dices = player1.value.dices.map(x=> getRandom())
-  player2.value.dices = player2.value.dices.map(x=> getRandom())
+  player1.value.dices = player1.value.dices.map((x) => getRandom());
+  player2.value.dices = player2.value.dices.map((x) => getRandom());
   // player1.value.isTurn = true;
 });
 type Player = {
   id: string;
   score: number;
   data: Map<number, Dice>;
-  dices:number[]
+  dices: number[];
 };
 
 function process() {
@@ -140,6 +158,10 @@ function process() {
   // if(game.value.playerTurn == )
 }
 function summaryGame() {
+  if (game.value.players.every((x) => x.score == game.value.players[0].score)) {
+    alert(`ending! drawing!`);
+    return;
+  }
   game.value.winner = game.value.players.sort((s) => s.score - s.score)[0];
   alert(`ending! id: ${game.value.winner} win`);
 }
